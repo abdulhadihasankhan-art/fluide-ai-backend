@@ -174,6 +174,15 @@ app.post("/api/signup", async(req, res) => {
   }
 });
 
+// Server ko jaagta rakhne ke liye ping
+setInterval(() => {
+  fetch("https://fluide-ai-backend-4.onrender.com/api/tts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: "." })
+  }).catch(() => {});
+}, 840000); // 14 minute pe ping
+
 app.listen(3000, "0.0.0.0", () => {
   console.log("Fluide AI running on port 3000");
 });
