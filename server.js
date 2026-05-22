@@ -122,7 +122,7 @@ RULES:
 
     const messages = [
       { role: "system", content: systemPrompt },
-      ...(history || []).slice(-10),
+      ...(history || []).slice(-20),
       { role: "user", content: message }
     ];
 
@@ -134,7 +134,7 @@ RULES:
       },
       body: JSON.stringify({
         model: "gpt-4.1-mini",
-        max_tokens: 600,
+        max_tokens: 1200,
         temperature: 0.7,
         messages: messages
       })
