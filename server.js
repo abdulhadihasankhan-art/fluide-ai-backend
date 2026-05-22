@@ -454,7 +454,7 @@ Show this exact format:
 
 ━━━━━━━━━━━━━━━━━━━━━
 ❓ Questions:
-${randomScript.questions.map((q, i) => `${i+1}. ${q}`).join('\n')}
+${randomScript.questions.map((q, i) => (i+1) + '. ' + q).join('\n')}
 ━━━━━━━━━━━━━━━━━━━━━
 
 💡 Tip: Read the script once, then cover it and try to answer from memory!
@@ -612,7 +612,7 @@ ${randomText.text}
 
 ━━━━━━━━━━━━━━━━━━━━━
 ❓ COMPREHENSION QUESTIONS:
-${randomText.questions.map((q, i) => `${i+1}. ${q}`).join('\n')}
+${randomText.questions.map((q, i) => (i+1) + '. ' + q).join('\n')}
 
 ━━━━━━━━━━━━━━━━━━━━━
 📝 BONUS — Vocabulary in the text:
