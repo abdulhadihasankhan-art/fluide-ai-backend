@@ -335,7 +335,7 @@ If student says "sample answer":
 
       const randomSectionA = tcfTopics.sectionA[Math.floor(Math.random() * tcfTopics.sectionA.length)];
       const randomSectionB = tcfTopics.sectionB[Math.floor(Math.random() * tcfTopics.sectionB.length)];
-      const randomSectionC = tcfTopics.tcfTopics ? tcfTopics.tcfTopics.sectionC[0] : tcfTopics.sectionC[Math.floor(Math.random() * tcfTopics.sectionC.length)];
+      const randomSectionC = tcfTopics.sectionC[Math.floor(Math.random() * tcfTopics.sectionC.length)];
 
       modeInstructions = `
 You are a REAL TCF oral examiner. Professional, strict but encouraging.
