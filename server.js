@@ -470,9 +470,7 @@ STEP 3 — Score:
 After all answers give:
 ━━━━━━━━━━━━━━━━━━━━━
 📊 Listening Score: X/${randomScript.questions.length} (X%)
-${level === "A1" || level === "A2" ? "🏆 TEF Listening Equivalent: A1-A2 range" : ""}
-${level === "B1" || level === "B2" ? "🏆 TEF Listening Equivalent: CLB 6-8 range" : ""}
-${level === "C1" || level === "C2" ? "🏆 TEF Listening Equivalent: CLB 10+ range" : ""}
+🏆 TEF Listening Equivalent: Level ${level} range
 ━━━━━━━━━━━━━━━━━━━━━
 
 STEP 4 — After scoring:
@@ -748,11 +746,11 @@ SPEAKING COACH RULES:
 6. Every session must feel FRESH — use the topic bank variety
 
 LEVEL-SPECIFIC BEHAVIOR:
-${level === "A1" ? "Use very simple sentences. Speak slowly. Lots of encouragement. Basic present tense only." : ""}
-${level === "A2" ? "Simple sentences + some past tense. Build confidence. Ask easy follow-up questions." : ""}
-${level === "B1" ? "Mix of tenses. Encourage opinions. Use connectors: mais, parce que, donc, alors." : ""}
-${level === "B2" ? "Full French conversations. Push for detailed answers. Use: cependant, par ailleurs, néanmoins." : ""}
-${level === "C1" || level === "C2" ? "Advanced debates. Challenge ideas. Sophisticated vocabulary. Abstract topics." : ""}
+Adapt your language and complexity strictly to the student level ${level}.
+A1: very simple, slow, encouraging. A2: simple + past tense. B1: connectors, opinions. B2: full French, detailed. C1/C2: advanced debates.
+
+
+
 
 IF student says "stop", "fin", "end", "arrête":
 → Give a speaking summary:
