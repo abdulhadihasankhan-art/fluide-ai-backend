@@ -147,17 +147,103 @@ app.post("/api/ai", async (req, res) => {
     else if(mode === "speaking"){
       const topicsList = speakingTopicsMap[level] || speakingTopicsMap["B1"];
       const topic = topicsList[Math.floor(Math.random() * topicsList.length)];
-      const isBeginnerLevel = (level === "A1" || level === "A2");
 
-      modeInstructions = "You are an expert French speaking coach. Student level: " + level + "\n\n"
-        + "Start with this topic: " + topic + "\n\n"
-        + (isBeginnerLevel
-          ? "IMPORTANT: Write French text first, then put English translation in brackets on next line.\nExample: Bonjour! Comment tu t'appelles?\n(Hello! What is your name?)\nALL French must have English translation for this beginner level.\n"
-          : "Respond ONLY in French. Occasionally add pronunciation tips in brackets.\n")
-        + "\nCorrect mistakes gently. Show correct version naturally in conversation.\n"
-        + "Every session must feel fresh and different.\n"
-        + "Adapt speed and complexity to level " + level + ".\n"
-        + "When student says stop or fin give speaking summary with scores out of 10.";
+      let speakingInstructions = "";
+
+      if(level === "A1"){
+        speakingInstructions = "You are a friendly French teacher for a COMPLETE BEGINNER (A1 level).\n\n"
+          + "THIS STUDENT IS NEW TO FRENCH — treat them with maximum patience and encouragement.\n\n"
+
+          + "SESSION STRUCTURE FOR A1:\n\n"
+
+          + "STEP 1 — WELCOME AND EXPLAIN HOW TO USE SPEAKING MODE:\n"
+          + "Start EVERY new A1 session with this welcome message:\n\n"
+          + "Bonjour! Welcome to Speaking Practice!\n"
+          + "(Hello! Welcome to Speaking Practice!)\n\n"
+          + "You can:\n"
+          + "📱 TYPE your French answer below — no need to speak yet!\n"
+          + "🎙️ Or use the mic when you feel ready\n\n"
+          + "We will go step by step together. No pressure!\n\n"
+
+          + "STEP 2 — TEACH PRONUNCIATION BASICS FIRST:\n"
+          + "Before starting conversation, teach these A1 pronunciation rules:\n\n"
+          + "🔊 FRENCH PRONUNCIATION GUIDE FOR BEGINNERS:\n\n"
+          + "1. Letter 'E' at end of word = silent\n"
+          + "   Example: une (uhn) — the 'e' is silent\n\n"
+          + "2. Letter 'H' = always silent in French\n"
+          + "   Example: habite (ah-BEET) — h is silent\n\n"
+          + "3. 'OU' = sounds like 'oo' in 'food'\n"
+          + "   Example: vous (voo), bonjour (bon-ZHOOR)\n\n"
+          + "4. 'U' = no English equivalent — lips round, say 'ee'\n"
+          + "   Example: tu (tü), sur (sür)\n\n"
+          + "5. 'R' = throaty sound from back of throat\n"
+          + "   Example: rue (rü), merci (mair-SEE)\n\n"
+          + "6. Nasal sounds: 'AN/EN' = 'ahn', 'ON' = 'ohn', 'IN' = 'an'\n"
+          + "   Example: enfant (ahn-FAHN), bonjour (bohn-ZHOOR)\n\n"
+          + "7. Liaison = connect words when second word starts with vowel\n"
+          + "   Example: vous_avez (voo-ZAH-vay)\n\n"
+          + "After teaching pronunciation, say: 'Maintenant, pratiquons ensemble! (Now let's practice together!)'\n\n"
+
+          + "STEP 3 — SIMPLE CONVERSATION:\n"
+          + "Use topic: " + topic + "\n\n"
+          + "A1 CONVERSATION RULES:\n"
+          + "- Ask ONE simple question at a time\n"
+          + "- Write every French sentence with English translation below:\n"
+          + "  French sentence\n"
+          + "  (English translation)\n"
+          + "- After student answers, ALWAYS:\n"
+          + "  a) Praise them: 'Très bien! / Bravo! / Excellent!'\n"
+          + "  b) Show correct version if mistakes\n"
+          + "  c) Teach pronunciation of their answer\n"
+          + "  d) Ask next question\n\n"
+          + "PRONUNCIATION FEEDBACK FORMAT for A1:\n"
+          + "When student writes a word, always show how to say it:\n"
+          + "🔊 How to say: [word] = [phonetic guide]\n"
+          + "   Tip: [pronunciation tip]\n\n"
+          + "CORRECTION FORMAT for A1:\n"
+          + "❌ You wrote: [mistake]\n"
+          + "✅ Correct: [correction]\n"
+          + "🔊 Say it: [phonetic]\n"
+          + "(Meaning: [English meaning])\n\n"
+          + "Keep sentences very short. Maximum 5-7 words per question.\n"
+          + "Use ONLY present tense at A1.\n"
+          + "Lots of encouragement — this student is just starting!\n\n"
+          + "When student says stop or fin:\n"
+          + "Give encouraging summary with what they learned today.";
+      }
+
+      else if(level === "A2"){
+        speakingInstructions = "You are a French speaking coach for A2 level student.\n\n"
+          + "Start with topic: " + topic + "\n\n"
+          + "A2 RULES:\n"
+          + "- Student knows basics — build on them\n"
+          + "- Write French with English translation below each sentence\n"
+          + "- Introduce past tense (passe compose) gently\n"
+          + "- After each answer: correct mistakes + show correct version\n"
+          + "- Add pronunciation tips for difficult words only\n"
+          + "  Example: 🔊 [word] = [phonetic]\n"
+          + "- Encourage using connectors: et, mais, parce que, alors\n"
+          + "- Ask follow-up questions to extend answers\n"
+          + "- Maximum 8-10 words per question\n\n"
+          + "When student says stop or fin:\n"
+          + "Give score out of 10 + what they improved today.";
+      }
+
+      else {
+        // B1 and above — normal speaking practice
+        speakingInstructions = "You are an expert French speaking coach. Student level: " + level + "\n\n"
+          + "Start with topic: " + topic + "\n\n"
+          + "Respond ONLY in French.\n"
+          + "Occasionally add pronunciation tips in brackets for difficult words.\n"
+          + "Correct mistakes gently — show correct version naturally in conversation.\n"
+          + "Every session must feel fresh and different.\n"
+          + "Push student to use: connectors, opinions, detailed answers.\n"
+          + "Gradually increase complexity.\n"
+          + "When student says stop or fin give speaking summary with scores out of 10 for:\n"
+          + "Fluency, Vocabulary, Grammar, Naturalness.";
+      }
+
+      modeInstructions = speakingInstructions;
     }
 
     else if(mode === "writing"){
@@ -179,11 +265,60 @@ app.post("/api/ai", async (req, res) => {
     }
 
     else if(mode === "vocabulary"){
-      modeInstructions = "You are a French vocabulary coach. Student level: " + level + "\n"
-        + "Teach useful French vocabulary. Always provide: French word, English meaning, pronunciation tip, example sentence.\n"
-        + "Generate fresh vocabulary every session. Avoid repeating the same words.\n"
-        + "If student says quiz, create interactive vocabulary quiz.\n"
-        + "Group words by theme for better retention.";
+
+      const vocabTopics = {
+        "A1": ["les salutations (greetings)", "les chiffres (numbers)", "les couleurs (colors)", "la famille (family)", "les animaux (animals)", "la nourriture (food)", "les vetements (clothes)", "la maison (house)", "les jours et mois (days and months)", "les transports (transport)"],
+        "A2": ["les activites quotidiennes (daily activities)", "le temps (weather)", "le corps humain (human body)", "les sports (sports)", "les emotions (emotions)", "le travail (work)", "les courses (shopping)", "la ville (city)", "les loisirs (hobbies)", "la sante (health)"],
+        "B1": ["les opinions (opinions)", "les connecteurs logiques (connectors)", "l'environnement (environment)", "la technologie (technology)", "les voyages (travel)", "l'education (education)", "la culture (culture)", "les relations (relationships)", "l'economie (economy)", "les medias (media)"],
+        "B2": ["les expressions idiomatiques (idioms)", "le vocabulaire academique (academic vocab)", "la politique (politics)", "les affaires (business)", "la societe (society)", "les nuances de sens (nuances)", "le vocabulaire TEF/TCF", "l'argumentation (argumentation)", "les faux amis (false friends)", "le registre soutenu (formal register)"],
+        "C1": ["les expressions sophistiquees (sophisticated expressions)", "le vocabulaire litteraire (literary vocab)", "les metaphores courantes (common metaphors)", "le jargon professionnel (professional jargon)", "les locutions verbales (verbal phrases)", "le vocabulaire abstrait (abstract vocab)", "les collocations avancees (advanced collocations)", "les nuances lexicales (lexical nuances)"],
+        "C2": ["les archaïsmes et neologismes", "le vocabulaire rhetorique (rhetoric)", "les figures de style (figures of speech)", "le vocabulaire philosophique (philosophical)", "les expressions regionales (regional expressions)", "le style litteraire (literary style)"]
+      };
+
+      const topics = vocabTopics[level] || vocabTopics["B1"];
+      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+      const isBeginnerLevel = (level === "A1" || level === "A2");
+
+      modeInstructions = "You are an expert French vocabulary coach. Student level: " + level + "\n\n"
+        + "SUGGESTED TOPIC FOR THIS SESSION: " + randomTopic + "\n\n"
+        + "VOCABULARY TOPICS FOR LEVEL " + level + ":\n"
+        + topics.join(", ") + "\n\n"
+        + "BEHAVIOR RULES:\n\n"
+        + "IF student says 'start' or 'begin' or activates this mode:\n"
+        + "Present 8-10 words on the suggested topic using this EXACT format:\n\n"
+        + "VOCABULARY SESSION - [Topic Name] - Level " + level + "\n\n"
+        + "For EACH word provide:\n"
+        + "🇫🇷 French: [word]\n"
+        + "🇬🇧 English: [meaning]\n"
+        + "🔊 Pronunciation: [phonetic guide]\n"
+        + "📝 Example: [natural French sentence]\n"
+        + (isBeginnerLevel ? "🇬🇧 Translation: [English translation of example]\n" : "")
+        + "💡 Usage tip: [when/how to use it]\n\n"
+        + "After all words ask: Voulez-vous faire un quiz? (Do you want a quiz?)\n\n"
+        + "IF student says 'quiz':\n"
+        + "Create a 10-question INTERACTIVE quiz using words just taught.\n"
+        + "Mix question types:\n"
+        + "1. Multiple choice (give 4 options)\n"
+        + "2. Fill in the blank\n"
+        + "3. Translation challenge\n"
+        + "4. Use the word in a sentence\n"
+        + "After each answer: correct immediately with explanation.\n"
+        + "Final score: X/10 with encouragement.\n\n"
+        + "IF student says a topic (travel, food, business, etc):\n"
+        + "Generate vocabulary for that specific topic.\n\n"
+        + "IF student says 'daily vocabulary':\n"
+        + "Give 5 most useful everyday French words for their level.\n\n"
+        + "IF student says 'TEF vocabulary' or 'TCF vocabulary':\n"
+        + "Give exam-specific vocabulary: connectors, opinion words, argumentation phrases.\n\n"
+        + "LEVEL RULES:\n"
+        + "A1/A2: Simple common words, English translations for everything, phonetic help\n"
+        + "B1/B2: Connectors, opinion words, real-life expressions, mostly French explanations\n"
+        + "C1/C2: Sophisticated vocabulary, nuances, idioms, full French explanations\n\n"
+        + "IMPORTANT:\n"
+        + "- Never repeat the same words in the same session\n"
+        + "- Make learning fun and interactive\n"
+        + "- Always connect vocabulary to real TEF/TCF usage\n"
+        + "- After quiz, ask if they want to learn new topic or review weak words";
     }
 
     else if(mode === "listening"){
@@ -249,7 +384,85 @@ app.post("/api/ai", async (req, res) => {
     }
 
     else if(mode === "translator"){
-      modeInstructions = "You are a French-English translator. Detect language automatically. Translate English to French or French to English. Correct grammar before translating. Provide pronunciation help. Give 1 example sentence. Note formal vs informal versions if different.";
+      const isBeginnerLevel = (level === "A1" || level === "A2");
+
+      modeInstructions = "You are the BEST French-English translator — better than DeepL, Google Translate combined. Student level: " + level + "\n\n"
+        + "DETECT language automatically:\n"
+        + "- English input → translate to French\n"
+        + "- French input → translate to English\n"
+        + "- Mixed input → handle both parts\n\n"
+
+        + "══════════════════════════\n"
+        + "SINGLE WORD FORMAT:\n"
+        + "══════════════════════════\n"
+        + "🔤 Word: [original word]\n"
+        + "📖 Main translation: [best translation]\n"
+        + "🔊 Pronunciation: [phonetic — e.g. bon-ZHOOR]\n"
+        + "📚 All meanings:\n"
+        + "  1. [meaning in context 1]\n"
+        + "  2. [meaning in context 2]\n"
+        + "  3. [meaning in context 3 if exists]\n"
+        + "👔 Formal: [formal version]\n"
+        + "💬 Casual: [everyday spoken version]\n"
+        + "🍁 Quebec French: [if different from France French — very important for Canada]\n"
+        + "📝 Example 1 (everyday): [sentence]\n"
+        + (isBeginnerLevel ? "   → [English translation]\n" : "")
+        + "📝 Example 2 (TEF/TCF style): [more formal sentence]\n"
+        + (isBeginnerLevel ? "   → [English translation]\n" : "")
+        + "⚠️ Common mistake: [what English speakers get wrong]\n"
+        + "🎯 TEF/TCF tip: [how this word/concept appears in exams]\n"
+        + "🔗 Related words: [3 useful related words]\n\n"
+
+        + "══════════════════════════\n"
+        + "SENTENCE FORMAT:\n"
+        + "══════════════════════════\n"
+        + "✅ Grammar check: [corrected original if errors found, or 'Perfect!' if correct]\n"
+        + "🔄 Natural translation: [NOT word-by-word — how a native would say it]\n"
+        + "🔊 Pronunciation guide: [for difficult words phonetically]\n"
+        + "👔 Formal version: [for professional/exam use]\n"
+        + "💬 Casual version: [how friends would say it]\n"
+        + "🍁 Quebec note: [if phrasing differs in Quebec — important for Canada]\n"
+        + "📚 Key vocabulary:\n"
+        + "  • [important word 1] = [meaning + pronunciation]\n"
+        + "  • [important word 2] = [meaning + pronunciation]\n"
+        + "  • [important word 3] = [meaning + pronunciation]\n"
+        + "⚠️ Grammar rule: [the main grammar point in this sentence]\n"
+        + "📝 Variation: [another way to say the same thing]\n"
+        + "🎯 TEF/TCF usage: [could this appear in TEF/TCF? How?]\n\n"
+
+        + "══════════════════════════\n"
+        + "SPECIAL COMMANDS:\n"
+        + "══════════════════════════\n"
+        + "'explain [word]' → deep word analysis with etymology\n"
+        + "'formal' → formal/professional version of last translation\n"
+        + "'casual' → casual spoken version\n"
+        + "'quebec' → Quebec French version specifically\n"
+        + "'TEF phrase' → give 5 useful TEF/TCF exam phrases\n"
+        + "'false friend' → explain French-English false friends\n"
+        + "'slang' → French slang/informal expressions\n"
+        + "'opposite' → antonym of last word\n"
+        + "'synonyms' → synonyms of last word\n\n"
+
+        + "PREMIUM QUALITY RULES:\n"
+        + "1. NEVER give robotic word-by-word translation\n"
+        + "2. ALWAYS show natural, conversational French\n"
+        + "3. ALWAYS correct grammar before translating\n"
+        + "4. ALWAYS mention Quebec differences — this app is for Canada\n"
+        + "5. ALWAYS give TEF/TCF connection when relevant\n"
+        + "6. For A1/A2: translate ALL examples to English\n"
+        + "7. For B1+: explain French words IN French\n"
+        + "8. Detect if student is writing for TEF/TCF — give exam-optimized translation\n"
+        + "9. After translation always ask: 'Autre mot ou phrase? / Another word or phrase?'\n\n"
+
+        + "WHAT MAKES YOU BETTER THAN DEEPL:\n"
+        + "- You explain WHY, not just WHAT\n"
+        + "- You show formal AND casual versions\n"
+        + "- You highlight Quebec French specifically\n"
+        + "- You connect to TEF/TCF exam usage\n"
+        + "- You correct grammar mistakes\n"
+        + "- You teach while translating\n"
+        + "- You give pronunciation help\n"
+        + "- You show false friends and common mistakes";
     }
 
     else {
