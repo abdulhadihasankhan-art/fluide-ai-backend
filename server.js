@@ -114,15 +114,24 @@ app.post("/api/ai", async (req, res) => {
       const randomAd = tefAds[Math.floor(Math.random() * tefAds.length)];
       const randomScenario = tefScenarios[Math.floor(Math.random() * tefScenarios.length)];
 
+      // Extract recent conversation topics to avoid repeats
+      const recentTopics = (history || []).slice(-10)
+        .filter(m => m.role === "assistant")
+        .map(m => m.content.slice(0, 80))
+        .join(" | ");
+
       modeInstructions = "You are a REAL TEF Canada oral examiner. Student level: " + level + "\n\n"
+        + "ANTI-REPEAT RULE: Check recent conversation history. If the advertisement or scenario below was recently used, CREATE A COMPLETELY DIFFERENT ONE from scratch instead.\n"
+        + "Recent history topics to AVOID: " + (recentTopics || "none") + "\n\n"
         + "TEF SECTION A - ASKING QUESTIONS:\n"
-        + "Show this advertisement:\n" + randomAd.content + "\n\n"
+        + "Suggested advertisement (change if recently used):\n" + randomAd.content + "\n\n"
         + "IMMEDIATELY act as the seller and greet the student naturally.\n"
         + "Wait for student to ask questions. NEVER create comprehension exercises.\n"
         + "The STUDENT leads the conversation by asking questions.\n\n"
         + "TEF SECTION B - CONVINCING TASK:\n"
-        + "Scenario: " + randomScenario + "\n"
+        + "Suggested scenario (change if recently used): " + randomScenario + "\n"
         + "Play the person being convinced. Push back naturally.\n\n"
+        + "IMPORTANT: If you sense the student has done this exact type before, create a fresh unique version.\n\n"
         + "When student says score give detailed scores out of 10 for:\n"
         + "Overall, Question Quality, Fluency, Vocabulary, Grammar, Connectors\n"
         + "Give TEF CLB level estimate.\n\n"
@@ -251,8 +260,9 @@ app.post("/api/ai", async (req, res) => {
       const topic = topicsList[Math.floor(Math.random() * topicsList.length)];
 
       modeInstructions = "You are an expert French writing tutor. Student level: " + level + "\n\n"
-        + "Suggested topic: " + topic + "\n\n"
-        + "If student asks for a topic, give: " + topic + "\n"
+        + "Suggested topic (use ONLY if not recently used): " + topic + "\n"
+        + "IMPORTANT: Check conversation history — if this topic was recently used, generate a COMPLETELY DIFFERENT topic adapted to level " + level + "\n\n"
+        + "If student asks for a topic, give a FRESH unique topic never used before.\n"
         + "If student submits French text, correct it using this format:\n"
         + "1. Scores: Grammar/10, Vocabulary/10, Structure/10, Overall/10\n"
         + "2. Errors Found: list every error with correction and explanation\n"
@@ -280,7 +290,8 @@ app.post("/api/ai", async (req, res) => {
       const isBeginnerLevel = (level === "A1" || level === "A2");
 
       modeInstructions = "You are an expert French vocabulary coach. Student level: " + level + "\n\n"
-        + "SUGGESTED TOPIC FOR THIS SESSION: " + randomTopic + "\n\n"
+        + "SUGGESTED TOPIC (use only if fresh): " + randomTopic + "\n"
+        + "CRITICAL: Check conversation history. If this topic was recently covered, pick a DIFFERENT topic from this list: " + topics.join(", ") + "\n\n"
         + "VOCABULARY TOPICS FOR LEVEL " + level + ":\n"
         + topics.join(", ") + "\n\n"
         + "BEHAVIOR RULES:\n\n"
@@ -333,9 +344,10 @@ app.post("/api/ai", async (req, res) => {
           + "Example format:\nBonjour! Je m'appelle Marie.\n(Hello! My name is Marie.)\nJ'ai 25 ans.\n(I am 25 years old.)\n\n"
           + "This helps beginners understand while learning. The audio will only speak the French text.\n\n"
           : "Present the script in French only. No translations needed for this level.\n\n")
-        + "Present this listening exercise:\n\n"
+        + "IMPORTANT: Check conversation history. If this script topic was recently used, CREATE A NEW listening script on a DIFFERENT topic for level " + level + ".\n\n"
+        + "Suggested listening exercise (change if recently used):\n"
         + "LISTENING EXERCISE - Level " + level + "\n"
-        + "Script (Read carefully then answer from memory):\n\n"
+        + "Script:\n\n"
         + scriptItem.script + "\n\n"
         + "Questions:\n" + questionsText + "\n\n"
         + "When student answers:\n"
@@ -352,8 +364,8 @@ app.post("/api/ai", async (req, res) => {
       const topic = topicsList[Math.floor(Math.random() * topicsList.length)];
 
       modeInstructions = "You are an expert French grammar teacher. Student level: " + level + "\n\n"
-        + "Recommended topic: " + topic + "\n"
-        + "Full curriculum for " + level + ": " + topicsList.join(", ") + "\n\n"
+        + "Recommended topic (use only if not recently taught): " + topic + "\n"
+        + "CRITICAL: Check history — if this grammar rule was recently covered, choose a DIFFERENT topic from: " + topicsList.join(", ") + "\n\n"
         + "Teach using this format:\n"
         + "1. EXPLANATION: Clear explanation\n"
         + "2. FORMATION/RULE: Show the rule clearly\n"
@@ -371,7 +383,8 @@ app.post("/api/ai", async (req, res) => {
       const questionsText = textItem.questions.map((q, i) => (i+1) + ". " + q).join("\n");
 
       modeInstructions = "You are a French reading comprehension teacher. Student level: " + level + "\n\n"
-        + "Present this reading exercise:\n\n"
+        + "IMPORTANT: Check conversation history. If a similar text or topic was recently used, CREATE A COMPLETELY NEW text on a different topic for level " + level + " instead of the suggested one below.\n\n"
+        + "Suggested reading exercise (change if recently used):\n"
         + "READING EXERCISE - " + textItem.title + "\n\n"
         + textItem.text + "\n\n"
         + "Questions:\n" + questionsText + "\n\n"
@@ -469,6 +482,12 @@ app.post("/api/ai", async (req, res) => {
       modeInstructions = "You are having a general French learning conversation. Help the student with any French questions. Be friendly, encouraging, and educational.";
     }
 
+    // Build recent topics from history to prevent repeats
+    const recentAIMessages = (history || []).slice(-14)
+      .filter(m => m.role === "assistant")
+      .map(m => m.content.slice(0, 120))
+      .join(" || ");
+
     const systemPrompt = "You are Fluide AI, an advanced French tutor and TEF/TCF Canada preparation coach.\n"
       + "Student level: " + level + "\n\n"
       + modeInstructions + "\n\n"
@@ -476,7 +495,9 @@ app.post("/api/ai", async (req, res) => {
       + "1. Adapt to level: A1/A2 use easy French + English support; B1/B2 mostly French; C1/C2 advanced French.\n"
       + "2. Always correct mistakes politely with the correct version.\n"
       + "3. Sound human and natural, never robotic.\n"
-      + "4. Be encouraging but honest in scoring.";
+      + "4. Be encouraging but honest in scoring.\n"
+      + "5. ANTI-REPEAT RULE: You have access to recent conversation history. NEVER repeat the same topic, advertisement, exercise, vocabulary word, grammar rule, text, or scenario that was recently used. Always generate something COMPLETELY DIFFERENT and FRESH. Check the history before responding.\n"
+      + (recentAIMessages ? "RECENT TOPICS TO AVOID REPEATING: " + recentAIMessages + "\n" : "");
 
     const messages = [
       { role: "system", content: systemPrompt },
