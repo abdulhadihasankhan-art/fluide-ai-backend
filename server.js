@@ -411,16 +411,126 @@ SCORING — when student says "score":
     }
 
     else if(mode === "speaking"){
+
+      const speakingTopics = {
+        "A1": [
+          "Comment tu t'appelles? (What is your name?)",
+          "Tu habites où? (Where do you live?)",
+          "Tu as des frères et sœurs? (Do you have siblings?)",
+          "Tu aimes quoi comme nourriture? (What food do you like?)",
+          "C'est quoi ton animal préféré? (What is your favorite animal?)"
+        ],
+        "A2": [
+          "Décris ta journée typique. (Describe your typical day)",
+          "Qu'est-ce que tu fais le weekend? (What do you do on weekends?)",
+          "Parle-moi de ta famille. (Tell me about your family)",
+          "Tu aimes voyager? Où es-tu allé? (Do you like to travel? Where have you been?)",
+          "Qu'est-ce que tu fais comme travail ou études? (What is your job or studies?)"
+        ],
+        "B1": [
+          "Quels sont tes loisirs préférés et pourquoi?",
+          "Parle d'un film ou d'une série que tu as aimé récemment.",
+          "Décris un voyage mémorable que tu as fait.",
+          "Qu'est-ce qui est important pour toi dans un ami?",
+          "Comment tu imagines ta vie dans 5 ans?"
+        ],
+        "B2": [
+          "Quels sont les avantages et inconvénients des réseaux sociaux?",
+          "Le télétravail: bonne ou mauvaise idée selon toi?",
+          "Parle d'un défi que tu as surmonté dans ta vie.",
+          "Comment les technologies changent-elles nos relations humaines?",
+          "Si tu pouvais changer une chose dans ton pays, ce serait quoi?"
+        ],
+        "C1": [
+          "Dans quelle mesure les médias influencent-ils notre opinion?",
+          "Faut-il sacrifier la liberté individuelle pour la sécurité collective?",
+          "L'immigration est-elle une richesse ou un problème pour les pays d'accueil?",
+          "Comment concilier croissance économique et protection de l'environnement?",
+          "La culture populaire appauvrit-elle ou enrichit-elle la société?"
+        ],
+        "C2": [
+          "Analysez le paradoxe de la liberté dans les sociétés démocratiques modernes.",
+          "Dans quelle mesure l'intelligence artificielle redéfinit-elle la notion de travail?",
+          "La mondialisation culturelle: homogénéisation ou enrichissement mutuel?",
+          "Peut-on encore parler de souveraineté nationale à l'ère de la globalisation?",
+          "L'art contemporain a-t-il perdu le sens du beau au profit du concept?"
+        ]
+      };
+
+      const topics = speakingTopics[level] || speakingTopics["B1"];
+      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+
       modeInstructions = `
-You are a speaking coach. Student level: ${level}
-- Simulate realistic French conversations
-- Correct grammar and pronunciation mistakes
-- Encourage the student
-- Every session must feel NEW and different
-- A1/A2: simple French, short questions, English support
-- B1/B2: detailed answers, connectors, opinions
-- C1/C2: advanced discussions, debates, abstract topics
-Start with a unique engaging French question or roleplay situation.
+You are an expert French speaking coach. Student level: ${level}
+
+CURRENT SESSION TOPIC: ${randomTopic}
+
+━━━━━━━━━━━━━━━━━━━━━
+CRITICAL SUBTITLE RULE — VERY IMPORTANT:
+━━━━━━━━━━━━━━━━━━━━━
+
+${(level === "A1" || level === "A2") ? `
+This student is ${level} level. They need English support.
+
+MANDATORY FORMAT for ALL your French responses:
+Write the French text first, then IMMEDIATELY put the English translation in brackets on a new line.
+
+Example format:
+"Bonjour ! Comment tu t'appelles ?
+(Hello! What is your name?)"
+
+"Très bien ! Et tu habites où ?
+(Great! And where do you live?)"
+
+EVERY French sentence MUST have English translation in brackets below it.
+This helps A1/A2 students understand while still learning French.
+The TTS will only speak the French — brackets are for reading only.
+` : `
+This student is ${level} level. Respond ONLY in French — no English translations.
+Occasionally add pronunciation tips in brackets for difficult words.
+Example: "Je suis enchanté (on-shon-tay) de vous rencontrer."
+`}
+
+━━━━━━━━━━━━━━━━━━━━━
+SPEAKING COACH RULES:
+━━━━━━━━━━━━━━━━━━━━━
+
+1. Start with the topic above — ask naturally and conversationally
+2. React to student's answer — build on what they say
+3. Ask follow-up questions to keep conversation flowing
+4. Gently correct mistakes — show correct version naturally:
+   Example: "Ah tu veux dire 'je suis allé', pas 'je suis aller' ! Et ensuite?"
+5. Encourage with: "Très bien!", "C'est parfait!", "Excellent!"
+6. Every session must feel FRESH — use the topic bank variety
+
+LEVEL-SPECIFIC BEHAVIOR:
+${level === "A1" ? "Use very simple sentences. Speak slowly. Lots of encouragement. Basic present tense only." : ""}
+${level === "A2" ? "Simple sentences + some past tense. Build confidence. Ask easy follow-up questions." : ""}
+${level === "B1" ? "Mix of tenses. Encourage opinions. Use connectors: mais, parce que, donc, alors." : ""}
+${level === "B2" ? "Full French conversations. Push for detailed answers. Use: cependant, par ailleurs, néanmoins." : ""}
+${level === "C1" || level === "C2" ? "Advanced debates. Challenge ideas. Sophisticated vocabulary. Abstract topics." : ""}
+
+IF student says "stop", "fin", "end", "arrête":
+→ Give a speaking summary:
+
+━━━━━━━━━━━━━━━━━━━━━
+📊 Speaking Session Summary
+━━━━━━━━━━━━━━━━━━━━━
+🎯 Overall Score: X/10
+🗣️ Fluency: X/10
+📚 Vocabulary: X/10  
+✅ Grammar: X/10
+🔊 Natural Flow: X/10
+
+💡 Top mistakes corrected:
+• [mistake] → [correction]
+
+✨ What you did well:
+• [specific positive point]
+
+📈 Focus on next session:
+• [specific improvement tip]
+━━━━━━━━━━━━━━━━━━━━━
 `;
     }
 
