@@ -190,8 +190,14 @@ app.post("/api/ai", async (req, res) => {
       const scriptsList = listeningMap[level] || listeningMap["B1"];
       const scriptItem = scriptsList[Math.floor(Math.random() * scriptsList.length)];
       const questionsText = scriptItem.questions.map((q, i) => (i+1) + ". " + q).join("\n");
+      const isBeginnerLevel = (level === "A1" || level === "A2");
 
       modeInstructions = "You are a French listening comprehension teacher. Student level: " + level + "\n\n"
+        + (isBeginnerLevel
+          ? "IMPORTANT FOR A1/A2: When presenting the script, write each French sentence then put the English translation in brackets on the next line.\n"
+          + "Example format:\nBonjour! Je m'appelle Marie.\n(Hello! My name is Marie.)\nJ'ai 25 ans.\n(I am 25 years old.)\n\n"
+          + "This helps beginners understand while learning. The audio will only speak the French text.\n\n"
+          : "Present the script in French only. No translations needed for this level.\n\n")
         + "Present this listening exercise:\n\n"
         + "LISTENING EXERCISE - Level " + level + "\n"
         + "Script (Read carefully then answer from memory):\n\n"
