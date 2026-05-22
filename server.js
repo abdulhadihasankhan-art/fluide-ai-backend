@@ -410,7 +410,251 @@ SCORING — when student says "score":
 `;
     }
 
-    else if(mode === "speaking"){
+    else if(mode === "listening"){
+
+      const listeningScripts = {
+        "A1": [
+          { script: "Bonjour! Je m'appelle Marie. J'ai 25 ans. J'habite à Paris. J'aime le café et les croissants. Je travaille dans un bureau.", questions: ["Quel est le prénom de la personne? / What is the person's first name?", "Quel âge a-t-elle? / How old is she?", "Où habite-t-elle? / Where does she live?"] },
+          { script: "Bonjour, je voudrais un café s'il vous plaît. — Bien sûr! Avec du lait? — Non merci, sans lait. — D'accord. C'est 2 euros. — Voilà, merci! — Bonne journée!", questions: ["Qu'est-ce que la personne commande? / What does the person order?", "Est-ce qu'elle veut du lait? / Does she want milk?", "Combien ça coûte? / How much does it cost?"] }
+        ],
+        "A2": [
+          { script: "Allô? Oui bonjour, je voudrais réserver une table pour ce soir. Pour combien de personnes? Pour 4 personnes, à 20 heures. Quel est votre nom? Martin. Très bien, c'est noté Monsieur Martin, table pour 4 à 20h.", questions: ["Pourquoi est-ce que la personne téléphone? / Why is the person calling?", "Pour combien de personnes? / For how many people?", "À quelle heure? / At what time?"] },
+          { script: "Hier, je suis allée au marché avec ma mère. Nous avons acheté des légumes, du pain et du fromage. Ensuite, nous avons mangé dans un restaurant près de chez nous. C'était délicieux!", questions: ["Avec qui est-elle allée au marché? / Who did she go to the market with?", "Qu'est-ce qu'elles ont acheté? / What did they buy?", "Qu'est-ce qu'elles ont fait après? / What did they do after?"] }
+        ],
+        "B1": [
+          { script: "Bonjour à tous et bienvenue dans notre émission. Aujourd'hui nous allons parler du télétravail. Selon une étude récente, 45% des employés français travaillent maintenant depuis chez eux au moins deux jours par semaine. Les avantages sont nombreux: moins de temps dans les transports, meilleur équilibre entre vie professionnelle et personnelle. Cependant, certains employés se sentent isolés et ont du mal à séparer le travail de la vie privée.", questions: ["Quel est le sujet de l'émission? / What is the topic of the show?", "Quel pourcentage d'employés télétravaillent? / What percentage of employees work from home?", "Quels sont les avantages mentionnés? / What advantages are mentioned?", "Quel problème est mentionné? / What problem is mentioned?"] },
+          { script: "Bienvenue à la gare de Lyon. Le train TGV numéro 6201 à destination de Marseille partira voie 8 dans 15 minutes. Les voyageurs sont priés de se présenter au quai muni de leur billet. Attention, ce train ne s'arrête pas à Valence. Prochain arrêt: Avignon.", questions: ["Quel est le numéro du train? / What is the train number?", "Quelle est la destination? / What is the destination?", "De quelle voie part le train? / From which platform does the train depart?", "Dans combien de temps part le train? / In how many minutes does the train leave?"] }
+        ],
+        "B2": [
+          { script: "Dans le cadre du débat sur l'intelligence artificielle, plusieurs experts s'affrontent sur la question de la réglementation. D'un côté, les partisans d'une IA libre estiment que trop de contraintes freineraient l'innovation et mettraient l'Europe en retard par rapport aux États-Unis et à la Chine. De l'autre côté, les défenseurs d'une régulation stricte soulignent les risques pour l'emploi, la vie privée et la démocratie. Le Parlement européen a récemment adopté l'AI Act, première loi mondiale encadrant l'intelligence artificielle.", questions: ["Quel est le sujet principal du document? / What is the main topic?", "Quels sont les deux camps dans ce débat? / What are the two sides in this debate?", "Pourquoi certains s'opposent-ils aux contraintes? / Why do some oppose restrictions?", "Qu'a adopté le Parlement européen? / What did the European Parliament adopt?"] }
+        ],
+        "C1": [
+          { script: "La question de la souveraineté alimentaire soulève des enjeux fondamentaux pour les démocraties contemporaines. Face à la mondialisation des échanges agricoles, certains économistes plaident pour un retour au protectionnisme alimentaire, arguant que la dépendance aux importations fragilise la sécurité nationale. Néanmoins, d'autres voix s'élèvent pour rappeler que le libre-échange a historiquement contribué à réduire la pauvreté dans les pays en développement. Cette tension entre souveraineté et solidarité internationale constitue l'un des défis majeurs du XXIe siècle.", questions: ["Quelle tension centrale le texte explore-t-il? / What central tension does the text explore?", "Quels arguments avancent les partisans du protectionnisme? / What arguments do protectionists make?", "Quelle critique leur est opposée? / What counterargument is made?", "Comment l'auteur caractérise-t-il ce débat? / How does the author characterize this debate?"] }
+        ]
+      };
+
+      const scripts = listeningScripts[level] || listeningScripts["B1"];
+      const randomScript = scripts[Math.floor(Math.random() * scripts.length)];
+
+      modeInstructions = `
+You are a French listening comprehension teacher. Student level: ${level}
+
+━━━━━━━━━━━━━━━━━━━━━
+LISTENING EXERCISE FORMAT:
+━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1 — Present the listening script:
+Show this exact format:
+
+🎧 LISTENING EXERCISE — Level ${level}
+━━━━━━━━━━━━━━━━━━━━━
+📻 Script (Read this carefully — imagine hearing it):
+
+"${randomScript.script}"
+
+━━━━━━━━━━━━━━━━━━━━━
+❓ Questions:
+${randomScript.questions.map((q, i) => `${i+1}. ${q}`).join('\n')}
+━━━━━━━━━━━━━━━━━━━━━
+
+💡 Tip: Read the script once, then cover it and try to answer from memory!
+
+STEP 2 — When student answers:
+- Check each answer carefully
+- For correct answers: ✅ "Correct! Well done!"
+- For wrong answers: ❌ "Not quite. The correct answer is: [answer] because..."
+- Give the correct answer with explanation
+- Show the relevant part of the script
+
+STEP 3 — Score:
+After all answers give:
+━━━━━━━━━━━━━━━━━━━━━
+📊 Listening Score: X/${randomScript.questions.length} (X%)
+${level === "A1" || level === "A2" ? "🏆 TEF Listening Equivalent: A1-A2 range" : ""}
+${level === "B1" || level === "B2" ? "🏆 TEF Listening Equivalent: CLB 6-8 range" : ""}
+${level === "C1" || level === "C2" ? "🏆 TEF Listening Equivalent: CLB 10+ range" : ""}
+━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4 — After scoring:
+Ask: "Voulez-vous un autre exercice? / Want another exercise?"
+Generate a completely new script if they say yes.
+
+IMPORTANT RULES:
+- Generate fresh scripts if student wants more — never repeat
+- Adapt difficulty to ${level}
+- For A1/A2: simple vocabulary, slow speech simulation, translation in brackets
+- For B1/B2: news style, announcements, conversations
+- For C1/C2: debates, conferences, complex discussions
+- Always simulate TTS reading by presenting script clearly
+`;
+    }
+
+    else if(mode === "grammar"){
+
+      const grammarCurriculum = {
+        "A1": ["Le présent de l'indicatif (être, avoir, aller)", "Les articles définis et indéfinis (le, la, les, un, une)", "La négation (ne...pas)", "Les pronoms sujets (je, tu, il/elle, nous, vous, ils/elles)", "Les adjectifs possessifs (mon, ma, mes)", "Le genre des noms (masculin/féminin)", "Les verbes réguliers en -ER"],
+        "A2": ["Le passé composé avec avoir", "Le passé composé avec être", "L'imparfait — introduction", "Les verbes pronominaux (se lever, se coucher)", "Les prépositions de lieu (à, en, au, aux)", "Le futur proche (aller + infinitif)", "Les adjectifs qualificatifs — accord"],
+        "B1": ["L'imparfait vs le passé composé", "Le futur simple", "Le conditionnel présent", "Les pronoms COD et COI (le, la, les, lui, leur)", "Les connecteurs logiques (cependant, de plus, par ailleurs)", "La comparaison (plus, moins, aussi...que)", "La cause et la conséquence (parce que, donc, c'est pourquoi)"],
+        "B2": ["Le subjonctif présent — formation et usage", "Le conditionnel passé", "Les pronoms relatifs (qui, que, dont, où)", "La voix passive", "Le discours indirect", "Les expressions idiomatiques courantes", "Les nuances de sens (bien que, quoique, à moins que)"],
+        "C1": ["Le subjonctif passé", "Les temps littéraires (passé simple, imparfait du subjonctif)", "La concession (bien que, quoique, même si)", "Les structures emphatiques (c'est...qui, c'est...que)", "Les nominalisations", "Le style indirect libre", "Les registres de langue (familier, standard, soutenu)"],
+        "C2": ["La stylistique française avancée", "Les figures de style (métaphore, hyperbole, litote)", "L'argumentation sophistiquée", "Les faux amis et pièges grammaticaux", "Les nuances lexicales avancées", "L'écriture académique et professionnelle", "La rhétorique française"]
+      };
+
+      const topics = grammarCurriculum[level] || grammarCurriculum["B1"];
+      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+
+      modeInstructions = `
+You are an expert French grammar teacher. Student level: ${level}
+
+GRAMMAR CURRICULUM FOR ${level}:
+${JSON.stringify(topics, null, 2)}
+
+━━━━━━━━━━━━━━━━━━━━━
+BEHAVIOR:
+━━━━━━━━━━━━━━━━━━━━━
+
+IF student says "start", "begin", or types a grammar topic:
+→ Teach that topic using this EXACT format:
+
+📚 GRAMMAR LESSON: [Topic Name]
+━━━━━━━━━━━━━━━━━━━━━
+
+📖 EXPLANATION:
+[Clear explanation in English for A1/A2, French for B2+]
+
+📋 FORMATION/RULE:
+[Show the rule clearly with formula]
+Example: Subject + avoir/être + past participle
+
+✅ EXAMPLES:
+1. [French sentence] = [English translation]
+2. [French sentence] = [English translation]
+3. [French sentence] = [English translation]
+
+⚠️ COMMON MISTAKES:
+❌ Wrong: [common error]
+✅ Correct: [correct version]
+💡 Why: [brief explanation]
+
+🎯 PRACTICE EXERCISE:
+Fill in the blanks OR translate OR correct the errors:
+1. [exercise 1]
+2. [exercise 2]
+3. [exercise 3]
+4. [exercise 4]
+5. [exercise 5]
+
+Type your answers and I will correct them!
+━━━━━━━━━━━━━━━━━━━━━
+
+WHEN student submits answers:
+- Check each answer
+- ✅ Correct answers with praise
+- ❌ Wrong answers with correction + explanation
+- Give final score X/5
+- Ask if they want to continue with next topic or more practice
+
+IF student says "next topic" → teach next grammar topic from curriculum
+IF student says "quiz" → give 10-question grammar quiz on topics learned
+IF student says "what should I learn?" → show full curriculum for their level
+
+LEVEL RULES:
+A1/A2: English explanations, simple examples, very encouraging
+B1/B2: Mix of French/English, real-world examples, TEF-style sentences
+C1/C2: Full French, sophisticated examples, literary references
+
+IMPORTANT:
+- Always start with a suggestion: "Today I recommend: ${randomTopic}"
+- Make lessons interactive — never just explain without exercises
+- Connect grammar to real TEF/TCF usage
+- Show how each rule helps in the exam
+`;
+    }
+
+    else if(mode === "reading"){
+
+      const readingTexts = {
+        "A1": [
+          { title: "Mon appartement", text: "Je m'appelle Thomas. J'habite dans un appartement à Lyon. Mon appartement est petit mais confortable. Il y a une chambre, un salon, une cuisine et une salle de bain. Dans ma chambre, il y a un lit, une armoire et un bureau. J'aime beaucoup mon appartement parce qu'il est près de mon travail.", questions: ["Où habite Thomas? / Where does Thomas live?", "Comment est son appartement? / What is his apartment like?", "Qu'est-ce qu'il y a dans sa chambre? / What is in his bedroom?", "Pourquoi est-ce qu'il aime son appartement? / Why does he like his apartment?"] },
+          { title: "Au marché", text: "Aujourd'hui c'est samedi. Marie va au marché avec sa fille. Elle achète des tomates, des pommes et du pain. Les tomates coûtent 3 euros. Les pommes coûtent 2 euros le kilo. Marie paie avec un billet de 10 euros et reçoit 5 euros de monnaie.", questions: ["Quel jour sommes-nous? / What day is it?", "Qu'est-ce que Marie achète? / What does Marie buy?", "Combien coûtent les tomates? / How much do the tomatoes cost?", "Combien de monnaie reçoit-elle? / How much change does she receive?"] }
+        ],
+        "A2": [
+          { title: "Les vacances de Julien", text: "L'été dernier, Julien est allé en vacances en Bretagne avec sa famille. Ils ont voyagé en voiture pendant 4 heures. Ils ont loué une maison près de la mer. Chaque matin, ils allaient à la plage. Julien a appris à faire du surf. Le soir, ils mangeaient des fruits de mer dans les restaurants locaux. C'était de magnifiques vacances!", questions: ["Où est allé Julien en vacances? / Where did Julien go on vacation?", "Comment ont-ils voyagé? / How did they travel?", "Qu'est-ce que Julien a appris? / What did Julien learn?", "Que faisaient-ils le soir? / What did they do in the evenings?"] }
+        ],
+        "B1": [
+          { title: "Le covoiturage en France", text: "Le covoiturage connaît un essor considérable en France ces dernières années. De plus en plus de Français choisissent de partager leurs voitures pour des raisons économiques et écologiques. Des applications comme BlaBlaCar ont révolutionné ce mode de transport en mettant en relation conducteurs et passagers. Selon une étude récente, 20% des Français utilisent régulièrement le covoiturage. Cette tendance s'explique notamment par la hausse du prix de l'essence et la prise de conscience environnementale. Cependant, certains critiques soulignent des problèmes de sécurité et de régulation.", questions: ["Pourquoi le covoiturage est-il populaire en France? / Why is carpooling popular in France?", "Quel pourcentage de Français utilisent le covoiturage? / What percentage of French people use carpooling?", "Quelles sont les raisons de cette tendance? / What are the reasons for this trend?", "Quelles critiques sont mentionnées? / What criticisms are mentioned?", "Quel rôle joue BlaBlaCar? / What role does BlaBlaCar play?"] }
+        ],
+        "B2": [
+          { title: "L'intelligence artificielle et l'emploi", text: "La révolution numérique soulève des questions fondamentales sur l'avenir du travail. Si certains économistes prédisent la disparition de 40% des emplois actuels d'ici 2030, d'autres estiment que l'IA créera autant de postes qu'elle en détruira. Les secteurs les plus menacés sont la comptabilité, la logistique et certains métiers administratifs. En revanche, les professions nécessitant créativité, empathie et jugement complexe semblent mieux protégées. Face à ces transformations, les gouvernements s'interrogent sur la nécessité d'un revenu universel et d'une refonte profonde des systèmes d'éducation et de formation professionnelle.", questions: ["Quel est le pourcentage d'emplois menacés selon certains économistes? / What percentage of jobs are at risk according to some economists?", "Quels secteurs sont les plus menacés? / Which sectors are most at risk?", "Quels emplois semblent mieux protégés? / Which jobs seem better protected?", "Quelles solutions les gouvernements envisagent-ils? / What solutions are governments considering?", "Quelle nuance l'auteur apporte-t-il? / What nuance does the author bring?"] }
+        ],
+        "C1": [
+          { title: "La démocratie à l'épreuve des réseaux sociaux", text: "Les démocraties libérales font face à un paradoxe inédit: les technologies censées favoriser la libre circulation de l'information se révèlent être des vecteurs de désinformation et de polarisation. Les algorithmes des plateformes numériques, optimisés pour maximiser l'engagement, créent des chambres d'écho qui renforcent les convictions préexistantes et marginaliseront les opinions modérées. Des études menées dans plusieurs pays démocratiques montrent une corrélation significative entre l'usage intensif des réseaux sociaux et la méfiance envers les institutions. Certains théoriciens évoquent désormais une 'infodémie' — une épidémie d'informations fausses — qui menacerait les fondements mêmes du débat démocratique. La question qui se pose est celle de la responsabilité: incombe-t-elle aux plateformes, aux États, ou aux citoyens eux-mêmes?", questions: ["Quel paradoxe l'auteur identifie-t-il? / What paradox does the author identify?", "Comment fonctionnent les algorithmes selon le texte? / How do algorithms work according to the text?", "Qu'est-ce qu'une 'infodémie'? / What is an 'infodemia'?", "Quelle question centrale le texte soulève-t-il? / What central question does the text raise?", "Quel est le ton général du texte? / What is the general tone of the text?"] }
+        ]
+      };
+
+      const texts = readingTexts[level] || readingTexts["B1"];
+      const randomText = texts[Math.floor(Math.random() * texts.length)];
+
+      modeInstructions = `
+You are a French reading comprehension teacher. Student level: ${level}
+
+━━━━━━━━━━━━━━━━━━━━━
+READING EXERCISE FORMAT:
+━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1 — Present the reading text:
+
+📖 READING EXERCISE — Level ${level}
+━━━━━━━━━━━━━━━━━━━━━
+📰 "${randomText.title}"
+
+${randomText.text}
+
+━━━━━━━━━━━━━━━━━━━━━
+❓ COMPREHENSION QUESTIONS:
+${randomText.questions.map((q, i) => `${i+1}. ${q}`).join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━
+📝 BONUS — Vocabulary in the text:
+[Pick 5 important words from the text and explain their meaning]
+
+Answer in French if B1+, English is fine for A1/A2.
+━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2 — When student answers:
+- Check each answer carefully against the text
+- ✅ Correct with specific praise
+- ❌ Wrong with: "Pas tout à fait. Relis cette partie: '[relevant quote]'"
+- Point to exact sentence in text
+
+STEP 3 — Final Score:
+━━━━━━━━━━━━━━━━━━━━━
+📊 Reading Score: X/${randomText.questions.length}
+
+📚 Vocabulary understood: [assessment]
+🧠 Comprehension level: [A1/A2/B1/B2/C1/C2]
+💡 Tip for improvement: [specific advice]
+
+🏆 TEF Reading Equivalent: CLB [X]
+━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4 — After scoring:
+- Explain any difficult vocabulary from the text
+- Ask if they want another exercise
+- Generate fresh texts on different topics
+
+TEXT DIFFICULTY BY LEVEL:
+A1: 50-80 words, present tense, simple vocab, with English translation of key words
+A2: 80-120 words, past tense introduced, everyday topics
+B1: 150-200 words, mixed tenses, news/society topics
+B2: 200-300 words, complex sentences, abstract topics, connectors
+C1/C2: 300-400 words, academic style, complex ideas, sophisticated vocabulary
+
+Always generate fresh texts on varied topics:
+- Society, technology, environment, culture, health, economy, education
+- Never repeat the same text or topic
+`;
+    }
 
       const speakingTopics = {
         "A1": [
