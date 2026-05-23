@@ -488,16 +488,23 @@ app.post("/api/ai", async (req, res) => {
       .map(m => m.content.slice(0, 120))
       .join(" || ");
 
+    // Pronunciation score from frontend speech recognition
+    const pronScore = req.body.pronunciationScore || null;
+    const spokenText = req.body.spokenText || null;
+    const pronNote = (pronScore && spokenText && mode === "speaking")
+      ? "\n\nPRONUNCIATION DATA: Student just said '" + spokenText + "' with confidence score " + pronScore + "/10 from speech recognition. If score is below 7, gently mention pronunciation feedback. Format: 🔊 Pronunciation: [score]/10 — [specific tip for that word/phrase]"
+      : "";
+
     const systemPrompt = "You are Fluide AI, an advanced French tutor and TEF/TCF Canada preparation coach.\n"
       + "Student level: " + level + "\n\n"
-      + modeInstructions + "\n\n"
+      + modeInstructions + pronNote + "\n\n"
       + "CORE RULES:\n"
       + "1. Adapt to level: A1/A2 use easy French + English support; B1/B2 mostly French; C1/C2 advanced French.\n"
       + "2. Always correct mistakes politely with the correct version.\n"
       + "3. Sound human and natural, never robotic.\n"
       + "4. Be encouraging but honest in scoring.\n"
-      + "5. ANTI-REPEAT RULE: You have access to recent conversation history. NEVER repeat the same topic, advertisement, exercise, vocabulary word, grammar rule, text, or scenario that was recently used. Always generate something COMPLETELY DIFFERENT and FRESH. Check the history before responding.\n"
-      + (recentAIMessages ? "RECENT TOPICS TO AVOID REPEATING: " + recentAIMessages + "\n" : "");
+      + "5. ANTI-REPEAT RULE: NEVER repeat the same topic, exercise, or scenario recently used.\n"
+      + (recentAIMessages ? "RECENT TOPICS TO AVOID: " + recentAIMessages + "\n" : "");
 
     const messages = [
       { role: "system", content: systemPrompt },
