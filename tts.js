@@ -4,7 +4,7 @@ import OpenAI from "openai";
 const router = express.Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Simple in-memory cache — same text nahi dobara fetch hogi
+// Simple in-memory cache
 const ttsCache = new Map();
 const MAX_CACHE = 50;
 
@@ -15,44 +15,41 @@ router.post("/tts", async (req, res) => {
       return res.status(400).json({ error: "No text provided" });
     }
 
-    // Trim text — max 500 chars for speed
     const cleanText = text.trim().slice(0, 500);
     const cacheKey = cleanText.slice(0, 100);
 
-    // ── CACHE HIT — instant response ──
+    // Cache hit — instant
     if(ttsCache.has(cacheKey)){
       const cached = ttsCache.get(cacheKey);
       res.set({
         "Content-Type": "audio/mpeg",
         "Content-Length": cached.length,
-        "Cache-Control": "public, max-age=3600",
-        "X-Cache": "HIT"
+        "Cache-Control": "public, max-age=3600"
       });
       return res.send(cached);
     }
 
-    // ── FETCH FROM OPENAI ──
+    // Voice: "nova" — clear, natural, not heavy
+    // Speed: 1.0 normal, 1.1 slightly faster = lighter/thinner sound
     const mp3 = await openai.audio.speech.create({
-      model: "tts-1",          // tts-1 = fastest, tts-1-hd = higher quality
-      voice: "fable",          // European/French accent
+      model: "tts-1-hd",     // HD = clearer, crisper — less "muddy"
+      voice: "nova",          // nova = clear female, natural, not heavy/thick
       input: cleanText,
-      speed: (lang === "fr") ? 0.92 : 1.0
+      speed: 1.05             // Slightly faster = lighter, crisper sound
     });
 
     const buffer = Buffer.from(await mp3.arrayBuffer());
 
-    // Cache karo
+    // Cache
     if(ttsCache.size >= MAX_CACHE){
-      const firstKey = ttsCache.keys().next().value;
-      ttsCache.delete(firstKey);
+      ttsCache.delete(ttsCache.keys().next().value);
     }
     ttsCache.set(cacheKey, buffer);
 
     res.set({
       "Content-Type": "audio/mpeg",
       "Content-Length": buffer.length,
-      "Cache-Control": "public, max-age=3600",
-      "X-Cache": "MISS"
+      "Cache-Control": "public, max-age=3600"
     });
 
     res.send(buffer);
