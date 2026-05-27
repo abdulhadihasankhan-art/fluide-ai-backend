@@ -1,45 +1,66 @@
 import express from "express";
 import OpenAI from "openai";
-import dotenv from "dotenv";
-dotenv.config();
 
 const router = express.Router();
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Simple in-memory cache — same text nahi dobara fetch hogi
+const ttsCache = new Map();
+const MAX_CACHE = 50;
 
 router.post("/tts", async (req, res) => {
   try {
-    const { text } = req.body;
-    if(!text) return res.status(400).json({ error: "No text provided" });
+    const { text, lang } = req.body;
+    if (!text || text.trim().length < 2) {
+      return res.status(400).json({ error: "No text provided" });
+    }
 
-    // iOS ke liye CORS headers
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader("Accept-Ranges", "bytes");
+    // Trim text — max 500 chars for speed
+    const cleanText = text.trim().slice(0, 500);
+    const cacheKey = cleanText.slice(0, 100);
 
-    const mp3 = await client.audio.speech.create({
-      model: "tts-1",
-      voice: "nova",
-      input: text.slice(0, 500)
+    // ── CACHE HIT — instant response ──
+    if(ttsCache.has(cacheKey)){
+      const cached = ttsCache.get(cacheKey);
+      res.set({
+        "Content-Type": "audio/mpeg",
+        "Content-Length": cached.length,
+        "Cache-Control": "public, max-age=3600",
+        "X-Cache": "HIT"
+      });
+      return res.send(cached);
+    }
+
+    // ── FETCH FROM OPENAI ──
+    const mp3 = await openai.audio.speech.create({
+      model: "tts-1",          // tts-1 = fastest, tts-1-hd = higher quality
+      voice: "fable",          // European/French accent
+      input: cleanText,
+      speed: (lang === "fr") ? 0.92 : 1.0
     });
 
     const buffer = Buffer.from(await mp3.arrayBuffer());
-    res.setHeader("Content-Length", buffer.length);
+
+    // Cache karo
+    if(ttsCache.size >= MAX_CACHE){
+      const firstKey = ttsCache.keys().next().value;
+      ttsCache.delete(firstKey);
+    }
+    ttsCache.set(cacheKey, buffer);
+
+    res.set({
+      "Content-Type": "audio/mpeg",
+      "Content-Length": buffer.length,
+      "Cache-Control": "public, max-age=3600",
+      "X-Cache": "MISS"
+    });
+
     res.send(buffer);
 
-  } catch(error) {
-    console.log(error);
+  } catch (error) {
+    console.error("TTS error:", error.message);
     res.status(500).json({ error: "TTS failed" });
   }
-});
-
-// OPTIONS request handle karo iOS ke liye
-router.options("/tts", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.sendStatus(200);
 });
 
 export default router;
