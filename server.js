@@ -144,11 +144,20 @@ app.post("/api/ai", async (req, res) => {
       const topicC = tcfTopicsC[Math.floor(Math.random() * tcfTopicsC.length)];
 
       modeInstructions = "You are a REAL TCF oral examiner. Student level: " + level + "\n\n"
-        + "Section A - Introduction: Ask: " + topicA + "\n"
-        + "Section B - Questions: Scenario: " + topicB + "\n"
-        + "Section C - Monologue: Topic: " + topicC + "\n\n"
-        + "Interact naturally as a real examiner.\n"
-        + "When student says score give detailed scores out of 10 for:\n"
+        + "STRICT TCF TIMING RULES:\n"
+        + "Section A — TOTAL 4 minutes:\n"
+        + "  • Introduction: 2 min 45 sec — Ask: " + topicA + "\n"
+        + "  • Follow-up questions: remaining ~1 min 15 sec\n"
+        + "  • After 4 min total: say 'Merci, passons a la Section B'\n\n"
+        + "Section B — TOTAL 4 min 30 sec:\n"
+        + "  • Scenario/interactive task: " + topicB + "\n"
+        + "  • After 4:30: say 'Merci, passons a la Section C'\n\n"
+        + "Section C — TOTAL 3 min 30 sec minimum, 4 min maximum:\n"
+        + "  • Monologue/discussion: " + topicC + "\n"
+        + "  • Student speaks minimum 3:30, maximum 4:00\n"
+        + "  • Interrupt if going over 4 min\n\n"
+        + "Behave exactly like a real TCF examiner — neutral, professional.\n"
+        + "When student says 'score' give detailed scores out of 10 for:\n"
         + "Overall, Fluency, Vocabulary, Grammar, Coherence\n"
         + "Give TCF level estimate (A1 to C2) and approximate score out of 699.";
     }
