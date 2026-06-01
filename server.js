@@ -536,37 +536,22 @@ app.post("/api/ai", async (req, res) => {
         model: "gpt-4.1-mini",
         max_tokens: 1200,
         temperature: 0.7,
-        stream: true,
         messages: messages
       })
     });
 
-    // Stream response — collect full reply
-    let fullReply = "";
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
+    const data = await response.json();
 
-    while(true){
-      const { done, value } = await reader.read();
-      if(done) break;
-      const chunk = decoder.decode(value);
-      const lines = chunk.split("\n").filter(l => l.startsWith("data: "));
-      for(const line of lines){
-        const json = line.replace("data: ", "").trim();
-        if(json === "[DONE]") break;
-        try{
-          const parsed = JSON.parse(json);
-          const delta = parsed.choices?.[0]?.delta?.content || "";
-          fullReply += delta;
-        } catch(e){}
-      }
+    if(!data.choices || !data.choices[0]){
+      console.error("OpenAI error:", JSON.stringify(data));
+      return res.status(500).json({ reply: "AI error. Please try again." });
     }
 
-    res.json({ reply: fullReply });
+    res.json({ reply: data.choices[0].message.content });
 
   } catch(err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    console.error("API error:", err);
+    res.status(500).json({ error: "Server error", reply: "Connection error. Please try again." });
   }
 });
 
