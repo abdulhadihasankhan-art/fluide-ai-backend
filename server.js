@@ -536,22 +536,123 @@ app.post("/api/ai", async (req, res) => {
         model: "gpt-4.1-mini",
         max_tokens: 1200,
         temperature: 0.7,
+        stream: true,
         messages: messages
       })
     });
 
-    const data = await response.json();
+    // Stream response — collect full reply
+    let fullReply = "";
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
 
-    if(!data.choices || !data.choices[0]){
-      console.error("OpenAI error:", data);
-      return res.status(500).json({ reply: "AI error. Please try again." });
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+      const chunk = decoder.decode(value);
+      const lines = chunk.split("\n").filter(l => l.startsWith("data: "));
+      for(const line of lines){
+        const json = line.replace("data: ", "").trim();
+        if(json === "[DONE]") break;
+        try{
+          const parsed = JSON.parse(json);
+          const delta = parsed.choices?.[0]?.delta?.content || "";
+          fullReply += delta;
+        } catch(e){}
+      }
     }
 
-    res.json({ reply: data.choices[0].message.content });
+    res.json({ reply: fullReply });
 
   } catch(err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+/* ── STREAMING ENDPOINT — for instant audio ── */
+app.post("/api/stream", async (req, res) => {
+  try {
+    const { message, level, mode, history, systemOverride } = req.body;
+
+    let modeInstructions = systemOverride || "You are Fluide AI, a French tutor. Be concise and natural.";
+
+    const systemPrompt = "You are Fluide AI, an advanced French tutor.\nStudent level: " + level + "\n\n" + modeInstructions;
+
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...(history || []).slice(-20),
+      { role: "user", content: message }
+    ];
+
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + process.env.OPENAI_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        max_tokens: 1200,
+        temperature: 0.7,
+        stream: true,
+        messages: messages
+      })
+    });
+
+    // SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+
+    const reader = openaiRes.body.getReader();
+    const decoder = new TextDecoder();
+    let fullReply = "";
+    let sentenceBuffer = "";
+
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split("\n").filter(l => l.startsWith("data: "));
+
+      for(const line of lines){
+        const json = line.replace("data: ", "").trim();
+        if(json === "[DONE]"){
+          // Send remaining buffer
+          if(sentenceBuffer.trim()){
+            res.write(`data: ${JSON.stringify({ delta: sentenceBuffer, done: false, firstSentence: false })}\n\n`);
+          }
+          res.write(`data: ${JSON.stringify({ delta: "", done: true, full: fullReply })}\n\n`);
+          res.end();
+          return;
+        }
+        try{
+          const parsed = JSON.parse(json);
+          const delta = parsed.choices?.[0]?.delta?.content || "";
+          if(!delta) continue;
+
+          fullReply += delta;
+          sentenceBuffer += delta;
+
+          // Send first sentence ASAP — triggers TTS immediately
+          const sentenceEnd = sentenceBuffer.search(/[.!?]\s/);
+          if(sentenceEnd > 20){
+            const firstSentence = sentenceBuffer.slice(0, sentenceEnd + 1).trim();
+            sentenceBuffer = sentenceBuffer.slice(sentenceEnd + 1);
+            res.write(`data: ${JSON.stringify({ delta: firstSentence, done: false, firstSentence: true })}\n\n`);
+          }
+        } catch(e){}
+      }
+    }
+
+    res.end();
+  } catch(err){
+    console.error("Stream error:", err);
+    res.write(`data: ${JSON.stringify({ error: "Stream failed" })}\n\n`);
+    res.end();
   }
 });
 
