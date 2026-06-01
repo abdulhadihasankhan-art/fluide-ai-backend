@@ -101,12 +101,17 @@ const grammarMap = {
 
 app.post("/api/ai", async (req, res) => {
   try {
-    const { message, level, mode, history } = req.body;
+    const { message, level, mode, history, systemOverride } = req.body;
 
     let modeInstructions = "";
     let finalMessage = message;
 
-    if(mode === "level-test"){
+    // If systemOverride provided — use directly (for admin level test etc)
+    if(systemOverride){
+      modeInstructions = systemOverride;
+    }
+
+    else if(mode === "level-test"){
       modeInstructions = "You are evaluating the student French level. Analyze grammar, vocabulary, fluency, sentence structure. Determine level: A1, A2, B1, B2, C1 or C2. Ask natural follow-up questions. Do not reveal level immediately. After enough messages, estimate the level and explain strengths and weaknesses.";
     }
 
