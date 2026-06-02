@@ -101,7 +101,7 @@ const grammarMap = {
 
 app.post("/api/ai", async (req, res) => {
   try {
-    const { message, level, mode, history, systemOverride } = req.body;
+    const { message, level, mode, history, systemOverride, imageBase64, imageMime } = req.body;
 
     let modeInstructions = "";
     let finalMessage = message;
@@ -520,11 +520,39 @@ app.post("/api/ai", async (req, res) => {
       + "5. ANTI-REPEAT RULE: NEVER repeat the same topic, exercise, or scenario recently used.\n"
       + (recentAIMessages ? "RECENT TOPICS TO AVOID: " + recentAIMessages + "\n" : "");
 
+    // Build user message — with image if provided
+    let userMessage;
+    if(imageBase64 && imageMime){
+      // GPT-4o vision — image + text
+      userMessage = {
+        role: "user",
+        content: [
+          {
+            type: "image_url",
+            image_url: {
+              url: `data:${imageMime};base64,${imageBase64}`,
+              detail: "high"
+            }
+          },
+          {
+            type: "text",
+            text: finalMessage || "Please correct this French writing."
+          }
+        ]
+      };
+    } else {
+      userMessage = { role: "user", content: finalMessage };
+    }
+
     const messages = [
       { role: "system", content: systemPrompt },
       ...(history || []).slice(-20),
-      { role: "user", content: finalMessage }
+      userMessage
     ];
+
+    // Use GPT-4o for image requests, mini for everything else
+    const model = imageBase64 ? "gpt-4o" : "gpt-4.1-mini";
+    console.log(`[AI] model=${model} mode=${mode} hasImage=${!!imageBase64}`);
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -533,7 +561,7 @@ app.post("/api/ai", async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-4.1-mini",
+        model: model,
         max_tokens: 1200,
         temperature: 0.7,
         messages: messages
