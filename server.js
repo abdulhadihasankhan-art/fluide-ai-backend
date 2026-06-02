@@ -510,6 +510,7 @@ app.post("/api/ai", async (req, res) => {
       : "";
 
     const isBeginnerLevel = (level === "A1" || level === "A2");
+    const isExamLevel = (level === "B1" || level === "B2" || level === "C1" || level === "C2");
 
     const beginnerRule = isBeginnerLevel
       ? "\n\nA1/A2 LANGUAGE RULE (VERY IMPORTANT):\n"
@@ -522,9 +523,22 @@ app.post("/api/ai", async (req, res) => {
         + "- Make it easy and encouraging for complete beginners\n"
       : "";
 
+    const motivationRule = "\n\nMOTIVATION & PROGRESS RULES:\n"
+      + "- Always end responses with a short encouraging line\n"
+      + "- Remind students of their Canada PR / immigration goal occasionally\n"
+      + (isExamLevel
+        ? "- This student is preparing for TEF/TCF Canada — mention CLB scores and exam tips regularly\n"
+          + "- After every practice, remind: 'CLB 7+ is needed for Express Entry — you are getting closer!'\n"
+          + "- Give specific TEF/TCF tips relevant to what was practiced\n"
+          + "- Track their improvement: 'Your French is improving — keep this up for your exam!'\n"
+        : "- Encourage them to keep going: 'Every session brings you closer to your Canadian dream! 🍁'\n"
+          + "- Remind them: 'Once you reach B1, TEF/TCF preparation begins!'\n")
+      + "- Use emojis to make responses friendly and motivating\n"
+      + "- Never be discouraging — always find something positive\n";
+
     const systemPrompt = "You are Fluide AI, an advanced French tutor and TEF/TCF Canada preparation coach.\n"
       + "Student level: " + level + "\n\n"
-      + modeInstructions + pronNote + beginnerRule + "\n\n"
+      + modeInstructions + pronNote + beginnerRule + motivationRule + "\n\n"
       + "CORE RULES:\n"
       + "1. Adapt to level: A1/A2 use easy French + English support; B1/B2 mostly French; C1/C2 advanced French.\n"
       + "2. Always correct mistakes politely with the correct version.\n"
