@@ -509,9 +509,22 @@ app.post("/api/ai", async (req, res) => {
       ? "\n\nPRONUNCIATION DATA: Student just said '" + spokenText + "' with confidence score " + pronScore + "/10 from speech recognition. If score is below 7, gently mention pronunciation feedback. Format: 🔊 Pronunciation: [score]/10 — [specific tip for that word/phrase]"
       : "";
 
+    const isBeginnerLevel = (level === "A1" || level === "A2");
+
+    const beginnerRule = isBeginnerLevel
+      ? "\n\nA1/A2 LANGUAGE RULE (VERY IMPORTANT):\n"
+        + "- ALWAYS write French text first\n"
+        + "- IMMEDIATELY after every French sentence/word, add English translation in brackets\n"
+        + "- Format: French text (English translation)\n"
+        + "- Example: 'Bonjour! (Hello!) Comment vous appelez-vous? (What is your name?)'\n"
+        + "- Every single French word or phrase MUST have English in brackets\n"
+        + "- Instructions and explanations should be in ENGLISH\n"
+        + "- Make it easy and encouraging for complete beginners\n"
+      : "";
+
     const systemPrompt = "You are Fluide AI, an advanced French tutor and TEF/TCF Canada preparation coach.\n"
       + "Student level: " + level + "\n\n"
-      + modeInstructions + pronNote + "\n\n"
+      + modeInstructions + pronNote + beginnerRule + "\n\n"
       + "CORE RULES:\n"
       + "1. Adapt to level: A1/A2 use easy French + English support; B1/B2 mostly French; C1/C2 advanced French.\n"
       + "2. Always correct mistakes politely with the correct version.\n"
