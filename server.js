@@ -9,7 +9,8 @@ import bcrypt from "bcrypt";
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" })); // Image uploads need larger limit
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use("/api", ttsRoute);
 
 app.get("/test-db", async(req, res) => {
@@ -179,13 +180,11 @@ app.post("/api/ai", async (req, res) => {
 
           + "SESSION STRUCTURE FOR A1:\n\n"
 
-          + "STEP 1 — WELCOME AND EXPLAIN HOW TO USE SPEAKING MODE:\n"
+          + "STEP 1 — WELCOME:\n"
           + "Start EVERY new A1 session with this welcome message:\n\n"
           + "Bonjour! Welcome to Speaking Practice!\n"
           + "(Hello! Welcome to Speaking Practice!)\n\n"
-          + "You can:\n"
-          + "📱 TYPE your French answer below — no need to speak yet!\n"
-          + "🎙️ Or use the mic when you feel ready\n\n"
+          + "🎙️ Speak into the mic and I will help you improve!\n"
           + "We will go step by step together. No pressure!\n\n"
 
           + "STEP 2 — TEACH PRONUNCIATION BASICS FIRST:\n"
