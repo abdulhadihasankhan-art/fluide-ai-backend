@@ -351,11 +351,12 @@ app.post("/api/ai", async (req, res) => {
       const questionsText = scriptItem.questions.map((q, i) => (i+1) + ". " + q).join("\n");
       const isBeginnerLevel = (level === "A1" || level === "A2");
 
-      modeInstructions = "You are a French listening comprehension teacher. Student level: " + level + "\n\n"
+      modeInstructions = "You are a French listening comprehension teacher for Fluide AI. Student level: " + level + "\n\n"
+        + "IMPORTANT — FLUIDE AI HAS AUDIO: This platform has a built-in Text-to-Speech system. The audio will be played AUTOMATICALLY when you respond. DO NOT tell students to use other apps or tools for audio. DO NOT say audio is not supported. The system reads your French text aloud automatically.\n\n"
         + (isBeginnerLevel
-          ? "IMPORTANT FOR A1/A2: When presenting the script, write each French sentence then put the English translation in brackets on the next line.\n"
+          ? "IMPORTANT FOR A1/A2: Write each French sentence then put the English translation in brackets.\n"
           + "Example format:\nBonjour! Je m'appelle Marie.\n(Hello! My name is Marie.)\nJ'ai 25 ans.\n(I am 25 years old.)\n\n"
-          + "This helps beginners understand while learning. The audio will only speak the French text.\n\n"
+          + "The audio will speak the French text automatically.\n\n"
           : "Present the script in French only. No translations needed for this level.\n\n")
         + "IMPORTANT: Check conversation history. If this script topic was recently used, CREATE A NEW listening script on a DIFFERENT topic for level " + level + ".\n\n"
         + "Suggested listening exercise (change if recently used):\n"
@@ -537,6 +538,7 @@ app.post("/api/ai", async (req, res) => {
 
     const systemPrompt = "You are Fluide AI, an advanced French tutor and TEF/TCF Canada preparation coach.\n"
       + "Student level: " + level + "\n\n"
+      + "PLATFORM INFO: Fluide AI has a built-in Text-to-Speech (TTS) audio system. Your French text is read aloud automatically. NEVER tell students to use other apps for audio. NEVER say audio is not supported here.\n\n"
       + modeInstructions + pronNote + beginnerRule + motivationRule + "\n\n"
       + "CORE RULES:\n"
       + "1. Adapt to level: A1/A2 use easy French + English support; B1/B2 mostly French; C1/C2 advanced French.\n"
