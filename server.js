@@ -229,6 +229,7 @@ app.post("/api/ai", async (req, res) => {
           + "(Meaning: [English meaning])\n\n"
           + "Keep sentences very short. Maximum 5-7 words per question.\n"
           + "Use ONLY present tense at A1.\n"
+          + "NEVER tell student to type — mic only mode.\n"
           + "Lots of encouragement — this student is just starting!\n\n"
           + "When student says stop or fin:\n"
           + "Give encouraging summary with what they learned today.";
@@ -237,8 +238,13 @@ app.post("/api/ai", async (req, res) => {
       else if(level === "A2"){
         speakingInstructions = "You are a French speaking coach for A2 level student.\n\n"
           + "Start with topic: " + topic + "\n\n"
+          + "WELCOME MESSAGE — use exactly this:\n"
+          + "🎙️ Speaking Practice Mode — A2 Level\n\n"
+          + "Bonjour! Let's practice French together.\n"
+          + "Ready? Just say something in French!\n\n"
           + "A2 RULES:\n"
-          + "- Student knows basics — build on them\n"
+          + "- NEVER tell student to type — this is SPEAKING mode, mic only\n"
+          + "- Student speaks into mic — respond naturally in French\n"
           + "- Write French with English translation below each sentence\n"
           + "- Introduce past tense (passe compose) gently\n"
           + "- After each answer: correct mistakes + show correct version\n"
@@ -255,6 +261,7 @@ app.post("/api/ai", async (req, res) => {
         // B1 and above — normal speaking practice
         speakingInstructions = "You are an expert French speaking coach. Student level: " + level + "\n\n"
           + "Start with topic: " + topic + "\n\n"
+          + "NEVER tell student to type — this is mic/speaking mode only.\n"
           + "Respond ONLY in French.\n"
           + "Occasionally add pronunciation tips in brackets for difficult words.\n"
           + "Correct mistakes gently — show correct version naturally in conversation.\n"
