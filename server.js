@@ -741,23 +741,24 @@ app.post("/api/speak", async (req, res) => {
       },
       body: JSON.stringify({
         text: cleanForTTS,
-        model_id: "eleven_turbo_v2_5", // Fastest model
+        model_id: "eleven_turbo_v2_5",
         voice_settings: {
           stability: 0.5,
-          similarity_boost: 0.75,
-          speed: ttsSpeed
+          similarity_boost: 0.75
         }
       })
     });
 
     if(!elRes.ok){
-      console.error("[ElevenLabs] Error:", elRes.status);
+      const errText = await elRes.text();
+      console.error("[ElevenLabs] Error:", elRes.status, errText);
       // Fallback to OpenAI TTS
+      console.log("[ElevenLabs] Falling back to OpenAI TTS");
       const ttsRes = await openai.audio.speech.create({
         model: "tts-1",
         voice: ["alloy","echo","fable","onyx","nova","shimmer"].includes(voice) ? voice : "alloy",
         input: cleanForTTS,
-        speed: ttsSpeed,
+        speed: 1.0,
         response_format: "mp3"
       });
       res.set({
@@ -769,6 +770,8 @@ app.post("/api/speak", async (req, res) => {
       ttsRes.body.pipe(res);
       return;
     }
+
+    console.log("[ElevenLabs] Streaming audio successfully");
 
     // Stream ElevenLabs audio directly to client
     res.set({
