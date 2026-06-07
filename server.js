@@ -708,8 +708,8 @@ app.post("/api/speak", async (req, res) => {
       .trim()
       .slice(0, 800);
 
-    // Now stream TTS + send text in header
-    // Speed based on level — controlled at TTS generation, not playback
+    // Now stream TTS using ElevenLabs — fastest streaming TTS
+    // Speed based on level
     const levelSpeeds = {
       "A1": { speaking: 0.85, listening: 0.75 },
       "A2": { speaking: 0.90, listening: 0.80 },
@@ -721,15 +721,56 @@ app.post("/api/speak", async (req, res) => {
     const lvlSpeeds = levelSpeeds[level] || { speaking: 1.0, listening: 0.9 };
     const ttsSpeed = (mode === "listening") ? lvlSpeeds.listening : lvlSpeeds.speaking;
 
-    const ttsRes = await openai.audio.speech.create({
-      model: "tts-1",
-      voice: ["alloy","echo","fable","onyx","nova","shimmer"].includes(voice) ? voice : "alloy",
-      input: cleanForTTS,
-      speed: ttsSpeed,
-      response_format: "mp3"
+    // ElevenLabs voice mapping
+    const elVoices = {
+      "alloy":   "EXAVITQu4vr4xnSDxMaL", // Sarah — natural female
+      "nova":    "EXAVITQu4vr4xnSDxMaL", // Sarah
+      "shimmer": "EXAVITQu4vr4xnSDxMaL", // Sarah
+      "echo":    "onwK4e9ZLuTAKqWW03F9", // Daniel — male
+      "onyx":    "onwK4e9ZLuTAKqWW03F9", // Daniel
+      "fable":   "onwK4e9ZLuTAKqWW03F9", // Daniel
+    };
+    const elVoiceId = elVoices[voice] || "EXAVITQu4vr4xnSDxMaL";
+
+    const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${elVoiceId}/stream`, {
+      method: "POST",
+      headers: {
+        "xi-api-key": process.env.ELEVENLABS_API_KEY,
+        "Content-Type": "application/json",
+        "Accept": "audio/mpeg"
+      },
+      body: JSON.stringify({
+        text: cleanForTTS,
+        model_id: "eleven_turbo_v2_5", // Fastest model
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          speed: ttsSpeed
+        }
+      })
     });
 
-    // Send text in header, stream audio in body
+    if(!elRes.ok){
+      console.error("[ElevenLabs] Error:", elRes.status);
+      // Fallback to OpenAI TTS
+      const ttsRes = await openai.audio.speech.create({
+        model: "tts-1",
+        voice: ["alloy","echo","fable","onyx","nova","shimmer"].includes(voice) ? voice : "alloy",
+        input: cleanForTTS,
+        speed: ttsSpeed,
+        response_format: "mp3"
+      });
+      res.set({
+        "Content-Type": "audio/mpeg",
+        "X-Reply-Text": encodeURIComponent(fullText.slice(0, 500)),
+        "X-Reply-Full": encodeURIComponent(fullText),
+        "Cache-Control": "no-cache"
+      });
+      ttsRes.body.pipe(res);
+      return;
+    }
+
+    // Stream ElevenLabs audio directly to client
     res.set({
       "Content-Type": "audio/mpeg",
       "X-Reply-Text": encodeURIComponent(fullText.slice(0, 500)),
@@ -738,7 +779,7 @@ app.post("/api/speak", async (req, res) => {
       "Transfer-Encoding": "chunked"
     });
 
-    ttsRes.body.pipe(res);
+    elRes.body.pipe(res);
 
   } catch(err){
     console.error("[SPEAK] Error:", err.message);
