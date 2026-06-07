@@ -15,31 +15,38 @@ router.post("/tts", async (req, res) => {
     }
 
     const useVoice = VALID_VOICES.includes(voice) ? voice : "alloy";
-    const cleanText = text.trim().slice(0, 500);
+    const cleanText = text.trim().slice(0, 1000);
 
-    console.log(`[TTS] voice=${useVoice} lang=${lang} text="${cleanText.slice(0,50)}"`);
+    console.log(`[TTS] voice=${useVoice} len=${cleanText.length} text="${cleanText.slice(0,50)}"`);
 
     const mp3 = await openai.audio.speech.create({
-      model: "tts-1-hd",   // HD = clearer, crisper
+      model: "tts-1",
       voice: useVoice,
       input: cleanText,
-      speed: 1.0           // Normal speed — not slow/heavy
+      speed: 1.0,
+      response_format: "mp3"
     });
 
-    const buffer = Buffer.from(await mp3.arrayBuffer());
-
+    // Stream directly — no await arrayBuffer
     res.set({
       "Content-Type": "audio/mpeg",
-      "Content-Length": buffer.length,
       "X-Voice-Used": useVoice,
-      "Cache-Control": "no-cache"
+      "Cache-Control": "no-cache",
+      "Transfer-Encoding": "chunked"
     });
 
-    res.send(buffer);
+    // Pipe stream directly to response
+    const stream = mp3.body;
+    stream.pipe(res);
+
+    stream.on("error", (err) => {
+      console.error("[TTS] Stream error:", err.message);
+      if(!res.headersSent) res.status(500).json({ error: "TTS stream failed" });
+    });
 
   } catch(err){
     console.error("[TTS] Error:", err.message);
-    res.status(500).json({ error: "TTS failed" });
+    if(!res.headersSent) res.status(500).json({ error: "TTS failed" });
   }
 });
 
