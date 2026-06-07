@@ -27,22 +27,17 @@ router.post("/tts", async (req, res) => {
       response_format: "mp3"
     });
 
-    // Stream directly — no await arrayBuffer
+    // Convert to buffer — pipe not supported
+    const buffer = Buffer.from(await mp3.arrayBuffer());
+
     res.set({
       "Content-Type": "audio/mpeg",
+      "Content-Length": buffer.length,
       "X-Voice-Used": useVoice,
-      "Cache-Control": "no-cache",
-      "Transfer-Encoding": "chunked"
+      "Cache-Control": "no-cache"
     });
 
-    // Pipe stream directly to response
-    const stream = mp3.body;
-    stream.pipe(res);
-
-    stream.on("error", (err) => {
-      console.error("[TTS] Stream error:", err.message);
-      if(!res.headersSent) res.status(500).json({ error: "TTS stream failed" });
-    });
+    res.send(buffer);
 
   } catch(err){
     console.error("[TTS] Error:", err.message);
