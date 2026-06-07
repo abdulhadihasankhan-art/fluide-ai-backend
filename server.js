@@ -6,6 +6,9 @@ import fetch from "node-fetch";
 import cors from "cors";
 import pool from "./db.js";
 import bcrypt from "bcrypt";
+import OpenAI from "openai";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const app = express();
 app.use(cors());
@@ -615,6 +618,131 @@ app.post("/api/ai", async (req, res) => {
   } catch(err) {
     console.error("API error:", err);
     res.status(500).json({ error: "Server error", reply: "Connection error. Please try again." });
+  }
+});
+
+/* ══════════════════════════════════════════════ */
+/* STREAMING AI + TTS — ChatGPT style instant    */
+/* AI text stream → pehla sentence → TTS stream  */
+/* ══════════════════════════════════════════════ */
+app.post("/api/speak", async (req, res) => {
+  try {
+    const { message, level, mode, history, systemOverride, pronunciationScore, spokenText } = req.body;
+    const voice = req.body.voice || "alloy";
+
+    // Build system prompt same as /api/ai
+    let modeInstructions = systemOverride || "";
+
+    if(!systemOverride){
+      // Use same mode instructions from /api/ai
+      if(mode === "speaking"){
+        modeInstructions = "You are a French speaking coach. Respond naturally in French. Keep responses concise — 2-4 sentences max for speaking mode.";
+      } else if(mode === "listening"){
+        modeInstructions = "You are a French listening comprehension teacher. Present the listening script in French.";
+      } else if(mode === "tef"){
+        modeInstructions = "You are a TEF Canada examiner. Conduct the exam naturally.";
+      } else if(mode === "tcf"){
+        modeInstructions = "You are a TCF Canada examiner. Conduct the exam naturally.";
+      }
+    }
+
+    const pronNote = (pronunciationScore && spokenText && mode === "speaking")
+      ? `\n[Student said: "${spokenText}" with pronunciation score ${pronunciationScore}/10. Give brief feedback.]`
+      : "";
+
+    const systemPrompt = "You are Fluide AI, an advanced French tutor.\n"
+      + "Student level: " + level + "\n\n"
+      + "PLATFORM INFO: Fluide AI has built-in TTS. Your French text is read aloud automatically.\n\n"
+      + modeInstructions + pronNote
+      + "\n\nKEY: Keep responses SHORT for speaking — 2-3 sentences. Audio plays immediately.";
+
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...(history || []).slice(-20),
+      { role: "user", content: message }
+    ];
+
+    // Stream AI response
+    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + process.env.OPENAI_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        max_tokens: 300,
+        temperature: 0.7,
+        stream: true,
+        messages: messages
+      })
+    });
+
+    // Collect full text first (fast with short responses)
+    const reader = aiRes.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
+
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+      const chunk = decoder.decode(value);
+      const lines = chunk.split("\n").filter(l => l.startsWith("data: "));
+      for(const line of lines){
+        const json = line.replace("data: ", "").trim();
+        if(json === "[DONE]") break;
+        try{
+          const parsed = JSON.parse(json);
+          fullText += parsed.choices?.[0]?.delta?.content || "";
+        } catch(e){}
+      }
+    }
+
+    // Clean text for TTS
+    const cleanForTTS = fullText
+      .replace(/\(([^)]*[a-zA-Z][^)]*)\)/g, '')
+      .replace(/\*+/g, '')
+      .replace(/[\u{1F300}-\u{1FFFF}]/gu, '')
+      .replace(/[📱🔊✅❌💡🏆📊🎯🍁🌟⭐🔥🎙️]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 800);
+
+    // Now stream TTS + send text in header
+    // Speed based on level — controlled at TTS generation, not playback
+    const levelSpeeds = {
+      "A1": { speaking: 0.85, listening: 0.75 },
+      "A2": { speaking: 0.90, listening: 0.80 },
+      "B1": { speaking: 1.0,  listening: 0.90 },
+      "B2": { speaking: 1.0,  listening: 0.95 },
+      "C1": { speaking: 1.0,  listening: 1.0  },
+      "C2": { speaking: 1.0,  listening: 1.0  },
+    };
+    const lvlSpeeds = levelSpeeds[level] || { speaking: 1.0, listening: 0.9 };
+    const ttsSpeed = (mode === "listening") ? lvlSpeeds.listening : lvlSpeeds.speaking;
+
+    const ttsRes = await openai.audio.speech.create({
+      model: "tts-1",
+      voice: ["alloy","echo","fable","onyx","nova","shimmer"].includes(voice) ? voice : "alloy",
+      input: cleanForTTS,
+      speed: ttsSpeed,
+      response_format: "mp3"
+    });
+
+    // Send text in header, stream audio in body
+    res.set({
+      "Content-Type": "audio/mpeg",
+      "X-Reply-Text": encodeURIComponent(fullText.slice(0, 500)),
+      "X-Reply-Full": encodeURIComponent(fullText),
+      "Cache-Control": "no-cache",
+      "Transfer-Encoding": "chunked"
+    });
+
+    ttsRes.body.pipe(res);
+
+  } catch(err){
+    console.error("[SPEAK] Error:", err.message);
+    if(!res.headersSent) res.status(500).json({ error: "Speak failed" });
   }
 });
 
