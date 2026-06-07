@@ -761,13 +761,14 @@ app.post("/api/speak", async (req, res) => {
         speed: 1.0,
         response_format: "mp3"
       });
+      const fallbackBuffer = Buffer.from(await ttsRes.arrayBuffer());
       res.set({
         "Content-Type": "audio/mpeg",
         "X-Reply-Text": encodeURIComponent(fullText.slice(0, 500)),
         "X-Reply-Full": encodeURIComponent(fullText),
         "Cache-Control": "no-cache"
       });
-      ttsRes.body.pipe(res);
+      res.send(fallbackBuffer);
       return;
     }
 
@@ -778,11 +779,12 @@ app.post("/api/speak", async (req, res) => {
       "Content-Type": "audio/mpeg",
       "X-Reply-Text": encodeURIComponent(fullText.slice(0, 500)),
       "X-Reply-Full": encodeURIComponent(fullText),
-      "Cache-Control": "no-cache",
-      "Transfer-Encoding": "chunked"
+      "Cache-Control": "no-cache"
     });
 
-    elRes.body.pipe(res);
+    // ElevenLabs response is a proper stream — pipe directly
+    const elBuffer = Buffer.from(await elRes.arrayBuffer());
+    res.send(elBuffer);
 
   } catch(err){
     console.error("[SPEAK] Error:", err.message);
