@@ -662,7 +662,7 @@ app.post("/api/speak", async (req, res) => {
       { role: "user", content: message }
     ];
 
-    // Stream AI response
+    // Get AI response — non-streaming (simpler, more reliable)
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -673,30 +673,13 @@ app.post("/api/speak", async (req, res) => {
         model: "gpt-4.1-mini",
         max_tokens: 300,
         temperature: 0.7,
-        stream: true,
+        stream: false,
         messages: messages
       })
     });
 
-    // Collect full text first (fast with short responses)
-    const reader = aiRes.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = "";
-
-    while(true){
-      const { done, value } = await reader.read();
-      if(done) break;
-      const chunk = decoder.decode(value);
-      const lines = chunk.split("\n").filter(l => l.startsWith("data: "));
-      for(const line of lines){
-        const json = line.replace("data: ", "").trim();
-        if(json === "[DONE]") break;
-        try{
-          const parsed = JSON.parse(json);
-          fullText += parsed.choices?.[0]?.delta?.content || "";
-        } catch(e){}
-      }
-    }
+    const aiData = await aiRes.json();
+    const fullText = aiData.choices?.[0]?.message?.content || "";
 
     // Clean text for TTS
     const cleanForTTS = fullText
