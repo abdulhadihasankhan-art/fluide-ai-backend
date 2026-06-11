@@ -592,8 +592,12 @@ app.post("/api/ai", async (req, res) => {
     const model = imageBase64 ? "gpt-4o" : "gpt-4.1-mini";
     console.log(`[AI] model=${model} mode=${mode} hasImage=${!!imageBase64}`);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000); // 25 sec timeout
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
+      signal: controller.signal,
       headers: {
         "Authorization": "Bearer " + process.env.OPENAI_API_KEY,
         "Content-Type": "application/json"
@@ -605,6 +609,7 @@ app.post("/api/ai", async (req, res) => {
         messages: messages
       })
     });
+    clearTimeout(timeout);
 
     const data = await response.json();
 
